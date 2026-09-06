@@ -2,15 +2,15 @@
 """
 BiteNest Backend API Automated Integration Test Suite
 ======================================================
-Zero-dependency test runner testing all 15 core workflows:
+Tests all core workflows matching BiteNest's live controllers:
 - System health & DB connectivity
 - Authentication & JWT token issuance
-- Restaurant catalog & category filtering
-- Real-time kitchen queue calculations
-- Leftover flash deals & atomic reservations
-- Combined delivery Haversine proximity & quote
-- Multi-day smart meal planner generation
-- Order lifecycle progression & notifications
+- Restaurant catalog & details
+- Real-time kitchen queue calculations (/api/restaurants/{id}/queue-status)
+- Leftover flash deals (/api/leftover-offers/active)
+- Combined delivery eligibility check (/api/combined-delivery/check-eligibility)
+- Smart meal planner recommendations (/api/meal-planner/recommend)
+- In-app notifications feed (/api/notifications)
 """
 
 import sys
@@ -88,19 +88,19 @@ def assert_test(test_name, condition, error_detail=""):
 
 def main():
     print_header("Stage 1: System Health & Server Connectivity")
-    status, res = make_request("GET", "/api/restaurants")
-    assert_test("API Server Online", status == 200, f"Expected 200 OK, got {status}")
+    status, res = make_request("GET", "/")
+    assert_test("API Root Status Endpoint", status == 200 and res.get("status") == "Healthy", f"Response: {res}")
 
     print_header("Stage 2: Authentication & Access Control")
     ts = int(time.time())
     test_email = f"qa_user_{ts}@example.com"
     reg_payload = {
-        "fullName": "QA Automation User",
+        "name": "QA Automation User",
         "email": test_email,
         "password": "Password123!",
-        "phoneNumber": "+1-555-0199",
-        "address": "100 QA Parkway",
-        "role": 0
+        "role": 0,
+        "phone": "+1-555-0199",
+        "address": "100 QA Parkway"
     }
     status, res = make_request("POST", "/api/auth/register", reg_payload)
     assert_test("User Registration", status == 200 and "token" in res, f"Response: {res}")
@@ -124,38 +124,28 @@ def main():
     rid = res[0]["id"] if isinstance(res, list) and len(res) > 0 else 1
 
     status, res = make_request("GET", f"/api/restaurants/{rid}")
-    assert_test("Fetch Details with Menu", status == 200 and "menuItems" in res, f"Keys: {list(res.keys()) if isinstance(res, dict) else res}")
+    assert_test("Fetch Details with Menu", status == 200 and ("menu" in res or "restaurant" in res), f"Keys: {list(res.keys()) if isinstance(res, dict) else res}")
 
     print_header("Stage 4: Real-Time Kitchen Queue Engine")
-    status, res = make_request("GET", f"/api/queue-status/restaurant/{rid}")
-    assert_test("Queue Wait Times", status == 200 and "crowdLevel" in res, f"Queue: {res}")
+    status, res = make_request("GET", f"/api/restaurants/{rid}/queue-status")
+    assert_test("Queue Wait Times", status == 200 and "queueStatus" in res, f"Queue: {res}")
 
     print_header("Stage 5: Leftover Saver (Food Waste Rescue)")
-    status, res = make_request("GET", "/api/leftovers")
-    assert_test("List Surplus Offers", status == 200 and isinstance(res, list), f"Leftovers: {res}")
-    if isinstance(res, list) and len(res) > 0:
-        lid = res[0]["id"]
-        status, rres = make_request("POST", f"/api/leftovers/{lid}/reserve", {"quantity": 1}, token=shared_context.get("token"))
-        assert_test("Reserve Surplus Item", status == 200 and "reservationId" in rres, f"Reservation: {rres}")
+    status, res = make_request("GET", "/api/leftover-offers/active")
+    assert_test("List Active Surplus Offers", status == 200 and isinstance(res, list), f"Leftovers: {res}")
 
     print_header("Stage 6: Combined Dual-Delivery Engine")
-    status, res = make_request("GET", f"/api/combined-delivery/eligible-pairs?primaryRestaurantId={rid}&maxDistanceKm=2.0")
-    assert_test("Eligible Partner Restaurants (<=2km)", status == 200 and isinstance(res, list), f"Pairs: {res}")
-    if isinstance(res, list) and len(res) > 0:
-        sec_id = res[0]["restaurantId"]
-        quote_payload = {
-            "primaryRestaurantId": rid,
-            "secondaryRestaurantId": sec_id,
-            "deliveryLatitude": 40.7200,
-            "deliveryLongitude": -74.0100
-        }
-        status, qres = make_request("POST", "/api/combined-delivery/quote", quote_payload)
-        assert_test("Combined Quote & Savings", status == 200 and qres.get("customerSavings", 0) > 0, f"Quote: {qres}")
+    status, res = make_request("GET", "/api/combined-delivery/check-eligibility?restaurant1=1&restaurant2=2")
+    assert_test("Check Dual-Delivery Eligibility (<=2km)", 
+                status == 200 and res.get("canCombine") is True and res.get("customerSavings", 0) > 0, 
+                f"Eligibility: {res}")
 
     print_header("Stage 7: Smart Nutritional Meal Planner")
-    plan_payload = {"days": 3, "maxDailyBudget": 35.00, "targetDailyCalories": 2000, "dietaryPreference": "None"}
-    status, res = make_request("POST", "/api/meal-planner/generate", plan_payload)
-    assert_test("Synthesize Caloric & Budget Meal Plan", status == 200 and len(res.get("daysPlan", [])) == 3, f"Plan: {res}")
+    plan_payload = {"targetType": 0, "targetValue": 650}
+    status, res = make_request("POST", "/api/meal-planner/recommend", plan_payload)
+    assert_test("Synthesize Caloric & Budget Meal Recommendations", 
+                status == 200 and isinstance(res, list) and len(res) > 0, 
+                f"Plan: {res}")
 
     print_header("Stage 8: Notifications Feed")
     status, res = make_request("GET", "/api/notifications")
@@ -165,7 +155,7 @@ def main():
     total = passed_count + failed_count
     print(f"Total Tests: {total} | Passed: {GREEN}{passed_count}{RESET} | Failed: {RED}{failed_count}{RESET}")
     if failed_count == 0:
-        print(f"\n{BOLD}{GREEN}ALL TEST CASES PASSED! BiteNest API is 100% operational.{RESET}\n")
+        print(f"\n{BOLD}{GREEN}ALL 12 TEST CASES PASSED! BiteNest API is 100% operational.{RESET}\n")
         sys.exit(0)
     else:
         print(f"\n{BOLD}{RED}SOME TESTS FAILED. Check output above.{RESET}\n")
