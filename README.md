@@ -28,12 +28,12 @@ Unlike traditional single-vendor food ordering apps, BiteNest introduces **geosp
 
 ```mermaid
 graph TD
-    A[BiteNest Innovation Core] --> B[1. Smart Kitchen Queue Engine]
-    A --> C[2. Combined Dual-Delivery Radar]
-    A --> D[3. Leftover Saver Marketplace]
-    A --> E[4. Algorithmic Meal Planner]
-    A --> F[5. Scheduled Slot Delivery]
-    A --> G[6. Multi-Role Unified Portal]
+    A["BiteNest Innovation Core"] --> B["1. Smart Kitchen Queue Engine"]
+    A --> C["2. Combined Dual-Delivery Radar"]
+    A --> D["3. Leftover Saver Marketplace"]
+    A --> E["4. Algorithmic Meal Planner"]
+    A --> F["5. Scheduled Slot Delivery"]
+    A --> G["6. Multi-Role Unified Portal"]
 ```
 
 1. **Smart Kitchen Queue Status**: Real-time kitchen load computation (*Free*, *Moderate*, *Busy*) with live dynamic wait time estimates, preventing diner wait frustration.
@@ -51,35 +51,42 @@ BiteNest follows clean **N-Tier Layered Architecture** with strict separation of
 
 ```mermaid
 graph TD
-    subgraph Client Layer [Frontend Presentation Layer]
-        HTML[index.html - Semantic Shell]
-        CSS[style.css - MD3 & Custom Utilities]
-        State[state.js - Reactive State Store & Pub/Sub]
-        API[api.js - HTTP Client & JWT Injection]
-        App[app.js - Component Rendering & Event Router]
+    subgraph ClientLayer["Frontend Presentation Layer"]
+        HTML["index.html (Semantic Shell)"]
+        CSS["style.css (MD3 & Custom Utilities)"]
+        State["state.js (Reactive State Store & Pub/Sub)"]
+        API["api.js (HTTP Client & JWT Injection)"]
+        App["app.js (Component Rendering & Event Router)"]
     end
 
-    subgraph Service Layer [ASP.NET Core 8 Web API]
-        Controllers[REST Controllers: 11 Controllers / 28 Endpoints]
-        AuthSvc[AuthService: BCrypt & JWT]
-        QueueSvc[QueueStatusService: Real-Time Load Engine]
-        CombSvc[CombinedDeliveryService: Haversine Spatial Math]
-        MealSvc[MealPlannerService: Knapsack Algorithm]
+    subgraph ServiceLayer["ASP.NET Core 8 Web API"]
+        Controllers["REST Controllers (11 Controllers / 28 Endpoints)"]
+        AuthSvc["AuthService (BCrypt & JWT)"]
+        QueueSvc["QueueStatusService (Real-Time Load Engine)"]
+        CombSvc["CombinedDeliveryService (Haversine Spatial Math)"]
+        MealSvc["MealPlannerService (Knapsack Algorithm)"]
     end
 
-    subgraph Data Access Layer [Entity Framework Core]
-        DbContext[ApplicationDbContext]
-        Entities[Entities & Enums]
-        Migrations[DbInitializer Seeder]
+    subgraph DataAccessLayer["Entity Framework Core"]
+        DbContext["ApplicationDbContext"]
+        Entities["Entities & Enums"]
+        Migrations["DbInitializer Seeder"]
     end
 
-    subgraph Storage Layer [MySQL 8.0 Enterprise Relational Store]
-        Tables[(11 Normalized Tables in 3NF)]
+    subgraph StorageLayer["MySQL 8.0 Enterprise Relational Store"]
+        Tables[("11 Normalized Tables in 3NF")]
     end
 
-    Client Layer -->|HTTP / JSON with JWT| Service Layer
-    Service Layer --> Data Access Layer
-    Data Access Layer -->|Pomelo MySQL Provider| Storage Layer
+    API -->|"HTTP / JSON with JWT"| Controllers
+    Controllers --> AuthSvc
+    Controllers --> QueueSvc
+    Controllers --> CombSvc
+    Controllers --> MealSvc
+    AuthSvc --> DbContext
+    QueueSvc --> DbContext
+    CombSvc --> DbContext
+    MealSvc --> DbContext
+    DbContext -->|"Pomelo MySQL Provider"| Tables
 ```
 
 ---
