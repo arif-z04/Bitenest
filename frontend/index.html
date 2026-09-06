@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BiteNest — Smart Food Delivery & Restaurant Management</title>
+  
+  <!-- Google Fonts: Roboto & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#fff7ed',
+              100: '#ffedd5',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c',
+              800: '#9a3412',
+              900: '#7c2d12',
+            },
+            tealbrand: {
+              500: '#00897b',
+              600: '#00796b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Material UI Styles -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body class="min-h-full flex flex-col antialiased text-slate-800 bg-slate-50">
+  
+  <!-- Top App Bar (Material Surface) -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 md-elevation-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Brand Logo -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="app.navigate('customer-restaurants')">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center text-white shadow-md shadow-orange-500/30">
+            <span class="material-symbols-outlined text-2xl">lunch_dining</span>
+          </div>
+          <div>
+            <span class="text-xl font-black tracking-tight text-slate-900" style="font-family: 'Outfit', sans-serif;">
+              Bite<span class="text-orange-600">Nest</span>
+            </span>
+            <span class="hidden sm:inline-block ml-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800">
+              SMART LOGISTICS
+            </span>
+          </div>
+        </div>
+
+        <!-- Role Simulator & Switcher Bar -->
+        <div class="flex items-center gap-3">
+          <div class="flex items-center bg-slate-100/90 border border-slate-200 rounded-2xl px-2.5 py-1.5 shadow-inner">
+            <span class="material-symbols-outlined text-slate-400 text-sm mr-1.5">switch_account</span>
+            <label for="role-switcher" class="text-[10px] font-bold uppercase text-slate-500 mr-2 hidden md:inline">Active Role:</label>
+            <select id="role-switcher" class="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <div id="current-user-display">
+            <!-- Populated dynamically -->
+          </div>
+
+          <!-- Cart Action Button -->
+          <button onclick="app.openCartModal()" class="relative p-2.5 rounded-2xl bg-orange-50 hover:bg-orange-100 text-orange-600 transition flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">shopping_cart</span>
+            <span id="cart-badge" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-orange-600 text-white text-[10px] font-black items-center justify-center shadow hidden">0</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Navigation Tabs (Role sensitive) -->
+      <nav class="flex items-center gap-6 overflow-x-auto text-xs py-2 border-t border-slate-100 no-scrollbar">
+        <button onclick="app.navigate('customer-restaurants')" data-view="customer-restaurants" class="nav-tab text-orange-600 border-b-2 border-orange-600 font-semibold pb-1.5 flex items-center gap-1.5 whitespace-nowrap">
+          <span class="material-symbols-outlined text-base">storefront</span> Discover & Queue
+        </button>
+        <button onclick="app.navigate('customer-meal-planner')" data-view="customer-meal-planner" class="nav-tab text-slate-500 pb-1.5 hover:text-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+          <span class="material-symbols-outlined text-base">nutrition</span> Meal Planner
+        </button>
+        <button onclick="app.navigate('customer-leftovers')" data-view="customer-leftovers" class="nav-tab text-slate-500 pb-1.5 hover:text-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+          <span class="material-symbols-outlined text-base">percent</span> Leftover Deals
+        </button>
+        <button onclick="app.navigate('customer-orders')" data-view="customer-orders" class="nav-tab text-slate-500 pb-1.5 hover:text-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+          <span class="material-symbols-outlined text-base">local_shipping</span> My Orders & Tracker
+        </button>
+        <button onclick="app.navigate('restaurant-dashboard')" data-view="restaurant-dashboard" class="nav-tab text-slate-500 pb-1.5 hover:text-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+          <span class="material-symbols-outlined text-base">restaurant</span> Kitchen Dashboard
+        </button>
+        <button onclick="app.navigate('rider-dashboard')" data-view="rider-dashboard" class="nav-tab text-slate-500 pb-1.5 hover:text-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+          <span class="material-symbols-outlined text-base">two_wheeler</span> Rider Portal
+        </button>
+        <button onclick="app.navigate('admin-dashboard')" data-view="admin-dashboard" class="nav-tab text-slate-500 pb-1.5 hover:text-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+          <span class="material-symbols-outlined text-base">admin_panel_settings</span> Administrator
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main View Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div id="main-content">
+      <!-- Dynamic Content rendered by app.js -->
+    </div>
+  </main>
+
+  <!-- Generic Modal (Cart, Menus, Leftovers) -->
+  <div id="generic-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+    <div class="bg-white rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl modal-content">
+      <div id="generic-modal-content">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-slate-800">BiteNest</span>
+        <span>• Smart Food Delivery & Restaurant Management System (CIT-222)</span>
+      </div>
+      <div class="text-[11px] text-slate-400">
+        ASP.NET Core Web API + MySQL + Tailwind CSS + Material UI
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/state.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
